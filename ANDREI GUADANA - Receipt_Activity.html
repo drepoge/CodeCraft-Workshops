@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CodeCraft Store - Receipt Activity</title>
+
+  <style>
+    body { margin: 0; font-family: "Trebuchet MS", "Segoe UI", Verdana, sans-serif; font-size: 16px; line-height: 1.5; color: #1d2b33; background: #eaf3f5; }
+    h1, h2 { font-family: Georgia, "Times New Roman", serif; }
+
+    header { background: linear-gradient(135deg, #083a4f, #0b4f6c); color: white; padding: 22px 28px; border-bottom: 5px solid #ffb703; }
+    header h1 { margin: 0; font-size: 30px; letter-spacing: 0.5px; }
+    header p { margin: 4px 0 0; color: #cfe6ee; font-size: 15px; }
+
+    .layout { max-width: 1120px; margin: 0 auto; padding: 22px 18px 36px; display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 24px; align-items: start; }
+    .layout > * { min-width: 0; }
+
+    aside.pricelist { position: sticky; top: 16px; background: white; border: 1px solid #cddde2; border-radius: 10px; overflow: hidden; }
+    aside.pricelist h2 { margin: 0; padding: 14px 18px; background: #ffb703; color: #083a4f; font-size: 19px; }
+    .pricelist table { width: 100%; border-collapse: collapse; }
+    .pricelist td, .pricelist th { padding: 7px 18px; text-align: left; font-size: 15px; }
+    .pricelist th { background: #f3f8fa; color: #0b4f6c; border-bottom: 2px solid #cddde2; }
+    .pricelist th:last-child { white-space: nowrap; }
+    .pricelist td:last-child, .pricelist th:last-child { text-align: right; font-family: "Courier New", monospace; }
+    .pricelist tbody tr:nth-child(even) { background: #f7fbfc; }
+
+    section { background: white; border: 1px solid #cddde2; border-left: 6px solid #0b4f6c; border-radius: 10px; padding: 4px 22px 20px; margin: 0 0 18px; }
+    h2 { color: #0b4f6c; font-size: 21px; }
+    .step { display: inline-block; background: #ffb703; color: #083a4f; border-radius: 6px; min-width: 28px; height: 28px; line-height: 28px; text-align: center; font-family: "Trebuchet MS", sans-serif; font-weight: bold; font-size: 15px; margin-right: 10px; }
+
+    label { display: block; margin-top: 12px; font-weight: bold; color: #26414d; }
+    input, select { width: 100%; padding: 9px 11px; font-size: 16px; font-family: inherit; border: 1px solid #9db6bf; border-radius: 6px; box-sizing: border-box; background: #fcfeff; }
+    input:focus, select:focus { outline: 3px solid #ffd86b; border-color: #0b4f6c; }
+    input[readonly] { background: #e6eef1; color: #33444c; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+
+    .table-wrap { overflow-x: auto; }
+    table.items { width: 100%; border-collapse: collapse; min-width: 580px; }
+    .items th { background: #0b4f6c; color: white; text-align: left; padding: 9px 10px; font-size: 14px; }
+    .items td { padding: 6px 5px; border-bottom: 1px solid #dbe7eb; }
+    .items input[type="number"], .items input[readonly] { text-align: right; font-family: "Courier New", monospace; }
+    .items .col-price { width: 125px; }
+    .items .col-qty { width: 85px; }
+    .items .col-amount { width: 130px; }
+
+    select[required], input[required] { border-left: 5px solid #d62828; }
+    .req-note { margin: 10px 0 0; color: #5b6b73; font-size: 14px; }
+    .star { color: #d62828; font-weight: bold; }
+
+    .summary { margin-top: 8px; }
+    .line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #b9cdd4; }
+    .line .v { font-family: "Courier New", monospace; font-weight: bold; }
+    .line.total { border-bottom: 3px double #0b4f6c; font-size: 19px; color: #0b4f6c; }
+    #difference { text-align: right; font-family: "Courier New", monospace; font-weight: bold; font-size: 18px; }
+
+    .buttons { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    button { background: #0b4f6c; color: white; border: none; border-radius: 6px; padding: 12px 26px; font-size: 16px; font-family: inherit; cursor: pointer; }
+    button:hover { background: #083a4f; }
+    button.secondary { background: #7a8b93; }
+    button.secondary:hover { background: #5b6b73; }
+
+    pre { display: inline-block; max-width: 100%; overflow-x: auto; box-sizing: border-box; margin: 4px 0 0; padding: 18px; background: #fffdf4; border: 1px dashed #8a9aa1; box-shadow: 2px 3px 8px rgba(8, 58, 79, 0.15); font-family: "Courier New", monospace; font-size: 15px; }
+    pre:empty { display: none; }
+
+    footer { text-align: center; padding: 18px; color: #5b6b73; border-top: 1px solid #cddde2; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      aside.pricelist { position: static; }
+    }
+    @media (max-width: 520px) { .two-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>CodeCraft Store</h1>
+    <p>Receipt activity: choose the items, then let JavaScript compute the sale</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- AVAILABLE ITEMS AND PRICES -->
+    <aside class="pricelist">
+      <h2>Available Items</h2>
+      <table>
+        <thead>
+          <tr><th>Item</th><th>Price (PHP)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Notebook</td><td>45.50</td></tr>
+          <tr><td>Ballpen</td><td>12.00</td></tr>
+          <tr><td>Pad paper</td><td>30.00</td></tr>
+          <tr><td>Bond paper</td><td>235.00</td></tr>
+          <tr><td>Pentel pen</td><td>38.50</td></tr>
+        </tbody>
+      </table>
+    </aside>
+
+    <main>
+
+      <!-- 1. CUSTOMER DETAILS -->
+      <section>
+        <h2><span class="step">1</span>Customer Details</h2>
+        <div class="two-col">
+          <div>
+            <label for="customer">Customer name</label>
+            <input type="text" id="customer" placeholder="e.g. Maria Santos">
+          </div>
+          <div>
+            <label for="cashier">Cashier</label>
+            <input type="text" id="cashier" placeholder="e.g. Juan Dela Cruz">
+          </div>
+        </div>
+        <label for="receiptDate">Date (automatic)</label>
+        <input type="text" id="receiptDate">
+      </section>
+
+      <!-- 2. ITEMS: THE OPTION VALUE IS THE PRICE; PRICE AND AMOUNT ARE AUTOMATIC -->
+      <section>
+        <h2><span class="step">2</span>Items Bought</h2>
+        <div class="table-wrap">
+          <table class="items">
+            <thead>
+              <tr><th>Item</th><th class="col-price">Price</th><th class="col-qty">Qty</th><th class="col-amount">Amount (automatic)</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <select id="item1" onchange="computeAmounts()">
+                    <option value="">Choose an item (required)</option>
+                    <option value="45.50">Notebook</option>
+                    <option value="12.00">Ballpen</option>
+                    <option value="30.00">Pad paper</option>
+                    <option value="235.00">Bond paper</option>
+                    <option value="38.50">Pentel pen</option>
+                  </select>
+                </td>
+                <td><input type="text" id="price1"></td>
+                <td><input type="number" id="qty1" min="0" placeholder="0" oninput="computeAmounts()"></td>
+                <td><input type="text" id="amount1"></td>
+              </tr>
+              <tr>
+                <td>
+                  <select id="item2" onchange="computeAmounts()">
+                    <option value="">Choose an item (optional)</option>
+                    <option value="45.50">Notebook</option>
+                    <option value="12.00">Ballpen</option>
+                    <option value="30.00">Pad paper</option>
+                    <option value="235.00">Bond paper</option>
+                    <option value="38.50">Pentel pen</option>
+                  </select>
+                </td>
+                <td><input type="text" id="price2"></td>
+                <td><input type="number" id="qty2" min="0" placeholder="0" oninput="computeAmounts()"></td>
+                <td><input type="text" id="amount2"></td>
+              </tr>
+              <tr>
+                <td>
+                  <select id="item3" onchange="computeAmounts()">
+                    <option value="">Choose an item (optional)</option>
+                    <option value="45.50">Notebook</option>
+                    <option value="12.00">Ballpen</option>
+                    <option value="30.00">Pad paper</option>
+                    <option value="235.00">Bond paper</option>
+                    <option value="38.50">Pentel pen</option>
+                  </select>
+                </td>
+                <td><input type="text" id="price3"></td>
+                <td><input type="number" id="qty3" min="0" placeholder="0" oninput="computeAmounts()"></td>
+                <td><input type="text" id="amount3"></td>
+              </tr>
+              <tr>
+                <td>
+                  <select id="item4" onchange="computeAmounts()">
+                    <option value="">Choose an item (optional)</option>
+                    <option value="45.50">Notebook</option>
+                    <option value="12.00">Ballpen</option>
+                    <option value="30.00">Pad paper</option>
+                    <option value="235.00">Bond paper</option>
+                    <option value="38.50">Pentel pen</option>
+                  </select>
+                </td>
+                <td><input type="text" id="price4"></td>
+                <td><input type="number" id="qty4" min="0" placeholder="0" oninput="computeAmounts()"></td>
+                <td><input type="text" id="amount4"></td>
+              </tr>
+              <tr>
+                <td>
+                  <select id="item5" onchange="computeAmounts()">
+                    <option value="">Choose an item (optional)</option>
+                    <option value="45.50">Notebook</option>
+                    <option value="12.00">Ballpen</option>
+                    <option value="30.00">Pad paper</option>
+                    <option value="235.00">Bond paper</option>
+                    <option value="38.50">Pentel pen</option>
+                  </select>
+                </td>
+                <td><input type="text" id="price5"></td>
+                <td><input type="number" id="qty5" min="0" placeholder="0" oninput="computeAmounts()"></td>
+                <td><input type="text" id="amount5"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="req-note"><span class="star">*</span> Item 1 is required. Items 2 to 5 are optional.</p>
+      </section>
+
+      <!-- 3. COMPUTED VALUES: SHOW WITH textContent -->
+      <section>
+        <h2><span class="step">3</span>Computed Values</h2>
+        <div class="summary">
+          <div class="line"><span class="k">Total quantity</span><span class="v" id="totalQty">0</span></div>
+          <div class="line"><span class="k">Subtotal</span><span class="v" id="subtotal">0.00</span></div>
+          <div class="line"><span class="k">VAT (12%)</span><span class="v" id="vatAmt">0.00</span></div>
+          <div class="line total"><span class="k">Total due</span><span class="v" id="totalDue">0.00</span></div>
+        </div>
+      </section>
+
+      <!-- 4. PAYMENT: THE DIFFERENCE IS AUTOMATIC -->
+      <section>
+        <h2><span class="step">4</span>Payment</h2>
+        <div class="two-col">
+          <div>
+            <label for="cash">Amount given</label>
+            <input type="number" id="cash" min="0" step="0.01" placeholder="0.00" oninput="computeAmounts()">
+          </div>
+          <div>
+            <label for="difference">Difference (automatic)</label>
+            <input type="text" id="difference">
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button type="button" onclick="printReceipt()">Print Receipt</button>
+          <button type="button" class="secondary" onclick="clearAll()">Clear</button>
+        </div>
+      </section>
+
+      <!-- 5. THE RECEIPT -->
+      <section>
+        <h2><span class="step">5</span>Receipt</h2>
+        <pre id="receipt"></pre>
+      </section>
+
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; <span id="year">2026</span> CodeCraft Store. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
